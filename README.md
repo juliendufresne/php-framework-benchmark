@@ -16,8 +16,23 @@ In our case, we'll assume to work in a microservice architecture.
 Our projects will be small and will not require a lot of things to work.
 The best choice will probably be a microframework because of the size of each project but we have to test fully featured framework as well.
 
-Framework Requirements
-----------------------
+The Stack
+---------
+
+A framework rarely works alone. It needs to connect to one (or more) database(s), send emails, ...
+We need to check frameworks in the same conditions. This means we need to use the same software in every framework.
+_You may think that the choice we made are not the best tools but it's not the purpose of this project_
+
+Here is the stack we've selected:
+1. MySQL as a primary data store. Data will be saved in MySQL but we won't read directly from it except during data alteration
+2. RabbitMQ as messaging system. It will be used to handle modification asynchronously
+3. Redis will be use as a cache server. We'll read data directly from it and fallback to MySQL if the data is not found.
+   We could have use it as a message broker but we need to ensure that the framework under test can connect to multiple tools and personaly I like to have tools dedicated to one task only.
+
+We can add other tools (a search engine, an email server, monitoring tools) but let's focus and this stack for the moment.
+
+Functional specifications
+-------------------------
 
 In order to compare framework against each other, each project must fullfil the same requirements:
 - Respond to this HTTP requests:
@@ -38,18 +53,14 @@ In order to compare framework against each other, each project must fullfil the 
   | edit_user_firstname | [body](docs/amqp/edit_user.json)   | Edit user's firstname (search by email) |
   | remove_user         | [body](docs/amqp/remove_user.json) | Remove a user (search by email)         |
 
-- store data in a MySQL database (InnoDB)
-  Because we need to have an RDMS (suporting ACID). In a real world application, this would be or primary source but we won't get data directly from this data store
-
-- read data from a redis server
-  Because we need performance.
-
 _Notes:_
 - _The software we chose are totally arbitrary but we need to have exactly the same for each framework because we want to check frameworks in the same conditions_
 - _In future version, we must ensure that the framework is able to handle more HTTP verbs: POST, PUT, PATCH, DELETE_
 
+Installation requirements
+-------------------------
 
-Each project needs to provide a `build.sh` file in the framework root dir.
-This file will be run before we test the application. It should bootstrap your application by creating some docker container.
-If you are not familiar with docker, don't worry. You can open a pull request with the framework you want to test and we'll try to make it work for you.
+In order to be able to build the framework, you need to provide a `build.sh` file in the framework root dir.
+Ideally, it should run some docker containers to make your application testable in the same condition as other framework.
+If you are not familiar with docker, simply describe how the framework should be built and we'll try to create docker containers for you.
 
